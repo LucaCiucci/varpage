@@ -17,6 +17,8 @@ jobs:
         persist-credentials: false
     - name: Install stable Rust
       run: rustup toolchain install stable --profile minimal
+    - name: Check only
+      run: cargo +stable check --locked
     - name: Check all targets
       run: cargo +stable check --locked --all-targets
     - name: Run tests
