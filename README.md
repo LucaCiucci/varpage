@@ -14,7 +14,7 @@ it with [`Storage::vacuum`].
 ## Quick start
 
 ```rust
-# use std::io::{self, Cursor};
+# use std::io::Cursor;
 # use varpage::Storage;
 let mut store = Storage::new_empty(Cursor::new(Vec::new())).unwrap();
 store.write(7, b"hello").unwrap();
