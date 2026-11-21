@@ -1,0 +1,16 @@
+[package]
+name = "varpage"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+smallvec = { version = "1.16.5", features = ["write"] }
+
+[dev-dependencies]
+colored = "3.1.1"
+criterion = "0.8.2"
+fastrand = "2"
+
+[[bench]]
+name = "storage_writes"
+harness = false

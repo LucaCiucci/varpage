@@ -1,0 +1,19 @@
+name: Storage benchmarks
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage-writes:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+    - name: Install stable Rust
+      run: rustup toolchain install stable --profile minimal
+    - name: Run storage write benchmarks
+      run: cargo +stable bench --locked --bench storage_writes -- --noplot
