@@ -43,3 +43,36 @@ clean-cxx:
 
 clean-rs:
     cargo clean
+
+# Verify the crate package without publishing.
+test-publish-rs:
+    cargo +stable publish --dry-run --allow-dirty --locked
+
+# Require a clean checkout tagged v<crate version>.
+check-on-release-tag:
+    #!/bin/sh
+    set -eu
+    status=$(git status --porcelain --untracked-files=normal)
+    if [ -n "$status" ]; then
+        echo "Commit or stash working tree changes before publishing." >&2
+        exit 1
+    fi
+
+    package_id=$(cargo +stable pkgid --locked)
+    version=${package_id##*[#@]}
+    tag="v$version"
+    head=$(git rev-parse --verify HEAD)
+    tagged_commit=$(git rev-parse --verify --quiet "refs/tags/$tag^{commit}" || true)
+    if [ -z "$tagged_commit" ]; then
+        printf 'Missing release tag %s. To tag this commit, run: git tag -a %s -m "%s"\n' \
+            "$tag" "$tag" "$tag" >&2
+        exit 1
+    fi
+    if [ "$tagged_commit" != "$head" ]; then
+        printf 'Release tag %s points to a different commit than HEAD.\n' "$tag" >&2
+        exit 1
+    fi
+
+# Publish the tagged Rust crate to crates.io.
+publish-rs: check-on-release-tag test-publish-rs
+    cargo +stable publish --locked

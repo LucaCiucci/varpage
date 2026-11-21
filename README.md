@@ -1,6 +1,6 @@
 # varpage
 
-Flexible, variable-length page storage
+Compact storage for variable-size records on seekable streams.
 
 A crate for storing variable-size records by ID in a file or other seekable
 stream.

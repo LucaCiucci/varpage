@@ -2,6 +2,13 @@
 name = "varpage"
 version = "0.1.0"
 edition = "2024"
+authors = ["Luca Ciucci <luca.ciucci99@gmail.com>"]
+description = "Compact storage for variable-size records on seekable streams."
+license = "MIT"
+repository = "https://github.com/LucaCiucci/varpage"
+readme = "README.md"
+keywords = ["storage", "records", "pages", "varint"]
+include = ["/src/", "/examples/", "/benches/", "/docs/format.md", "/README.md", "/LICENSE"]
 
 [dependencies]
 smallvec = { version = "1.16.5", features = ["write"] }
