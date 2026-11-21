@@ -422,7 +422,7 @@ mod tests {
                 assert_ne!(offset, 0);
             }
             let header_len = storage.records().nth(index).unwrap().header_len;
-            pos += header_len + u64::from(header.payload_len) + u64::from(offset);
+            pos += header_len + header.payload_len + offset;
         }
     }
 
@@ -484,27 +484,27 @@ mod tests {
     fn shrink_and_growth_across_varint_boundary() {
         let mut s = Storage::new_empty(Cursor::new(Vec::new())).unwrap();
         s.set_zero_free_space(true);
-        s.write(64, &vec![7; 128]).unwrap();
+        s.write(64, &[7; 128]).unwrap();
         s.write(2, b"tail").unwrap();
-        let original = s.records().nth(0).unwrap().stream_position;
-        let old_header = s.records().nth(0).unwrap().header_len;
+        let original = s.records().next().unwrap().stream_position;
+        let old_header = s.records().next().unwrap().header_len;
         let next = s.records().nth(1).unwrap().stream_position;
-        s.write(64, &vec![9; 127]).unwrap();
-        assert_eq!(s.records().nth(0).unwrap().stream_position, original);
-        assert_eq!(s.records().nth(0).unwrap().header_len + 1, old_header);
+        s.write(64, &[9; 127]).unwrap();
+        assert_eq!(s.records().next().unwrap().stream_position, original);
+        assert_eq!(s.records().next().unwrap().header_len + 1, old_header);
         assert_eq!(s.records().nth(1).unwrap().stream_position, next);
-        let end = (original + s.records().nth(0).unwrap().header_len + 127) as usize;
-        let trailer_end = end + s.records().nth(0).unwrap().next_offset_len as usize;
+        let end = (original + s.records().next().unwrap().header_len + 127) as usize;
+        let trailer_end = end + s.records().next().unwrap().next_offset_len as usize;
         assert!(
             s.rw.get_ref()[trailer_end..next as usize]
                 .iter()
                 .all(|b| *b == 0)
         );
-        check(&mut s, &[(64, &vec![9; 127]), (2, b"tail")]);
-        s.write(64, &vec![3; 128]).unwrap();
-        assert_eq!(s.records().nth(0).unwrap().stream_position, original);
-        s.write(64, &vec![4; 129]).unwrap();
-        check(&mut s, &[(2, b"tail"), (64, &vec![4; 129])]);
+        check(&mut s, &[(64, &[9; 127]), (2, b"tail")]);
+        s.write(64, &[3; 128]).unwrap();
+        assert_eq!(s.records().next().unwrap().stream_position, original);
+        s.write(64, &[4; 129]).unwrap();
+        check(&mut s, &[(2, b"tail"), (64, &[4; 129])]);
     }
 
     #[test]
@@ -565,12 +565,12 @@ mod tests {
     fn reads_missing_empty_moved_and_resized_records() {
         let mut s = Storage::new_empty(Cursor::new(Vec::new())).unwrap();
         assert_eq!(s.read(1).unwrap(), None);
-        s.write(1, &vec![7; 64]).unwrap();
+        s.write(1, &[7; 64]).unwrap();
         s.write(2, b"second").unwrap();
         assert_eq!(s.read(1).unwrap(), Some(vec![7; 64]));
-        s.write(1, &vec![8; 63]).unwrap();
+        s.write(1, &[8; 63]).unwrap();
         assert_eq!(s.read(1).unwrap(), Some(vec![8; 63]));
-        s.write(1, &vec![9; 100]).unwrap();
+        s.write(1, &[9; 100]).unwrap();
         assert_eq!(s.read(1).unwrap(), Some(vec![9; 100]));
         assert_eq!(s.read(2).unwrap(), Some(b"second".to_vec()));
         s.write(1, b"").unwrap();
@@ -584,12 +584,12 @@ mod tests {
         s.set_zero_free_space(true);
         s.write(1, &[1; 128]).unwrap();
         s.write(2, b"next").unwrap();
-        let first = s.records().nth(0).unwrap().stream_position;
+        let first = s.records().next().unwrap().stream_position;
         let second = s.records().nth(1).unwrap().stream_position;
         s.write(1, b"x").unwrap();
-        assert_eq!(s.records().nth(0).unwrap().stream_position, first);
+        assert_eq!(s.records().next().unwrap().stream_position, first);
         assert_eq!(s.records().nth(1).unwrap().stream_position, second);
-        assert_eq!(s.records().nth(0).unwrap().next_offset_len, 2);
+        assert_eq!(s.records().next().unwrap().next_offset_len, 2);
         let mut cursor = s.rw;
         cursor.set_position(0);
         let mut reopened = Storage::open(cursor).unwrap();
@@ -617,7 +617,7 @@ mod tests {
         s.write(1, &[7; 128]).unwrap();
         s.write(2, b"second").unwrap();
         s.write(1, &[8; 200]).unwrap();
-        assert!(s.records().nth(0).unwrap().stream_position >= 128);
+        assert!(s.records().next().unwrap().stream_position >= 128);
         let mut cursor = s.rw;
         cursor.set_position(0);
         let mut s = Storage::open(cursor).unwrap();
@@ -625,7 +625,7 @@ mod tests {
         assert_eq!(s.read(1).unwrap(), Some(vec![8; 200]));
         s.set_zero_free_space(true);
         s.write(3, b"new").unwrap();
-        assert_eq!(s.records().nth(0).unwrap().stream_position, 1);
+        assert_eq!(s.records().next().unwrap().stream_position, 1);
         s.rw.set_position(0);
         let mut reopened = Storage::open(s.rw).unwrap();
         assert_eq!(reopened.read(3).unwrap(), Some(b"new".to_vec()));
@@ -772,7 +772,7 @@ mod tests {
         s.rw.set_position(0);
         let mut reopened = Storage::open(s.rw).unwrap();
         assert_eq!(reopened.read(2).unwrap(), Some(b"y".to_vec()));
-        assert_eq!(reopened.records().nth(0).unwrap().next_offset_len, 2);
+        assert_eq!(reopened.records().next().unwrap().next_offset_len, 2);
     }
 
     #[test]

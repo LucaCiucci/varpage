@@ -8,6 +8,14 @@ test: test-rs test-cxx
 [positional-arguments]
 check-rs *ARGS:
     cargo +stable check --locked "$@"
+    just check-rs-formatted
+    just check-rs-clippy
+
+check-rs-formatted:
+    cargo +stable fmt -- --check
+
+check-rs-clippy:
+    cargo +stable clippy --locked --all-targets --all-features -- -D warnings
 
 [positional-arguments]
 test-rs *ARGS:

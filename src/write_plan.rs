@@ -125,10 +125,10 @@ impl<T> Storage<T> {
 
         let mut gap_ends = SmallVec::new();
         if old_position == Some(position) {
-            if self.records[&position].trailer_position()? != trailer {
-                if let Some(next) = successor {
-                    gap_ends.push(next.stream_position);
-                }
+            if self.records[&position].trailer_position()? != trailer
+                && let Some(next) = successor
+            {
+                gap_ends.push(next.stream_position);
             }
         } else {
             gap_ends.push(position);

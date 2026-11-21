@@ -17,7 +17,7 @@ jobs:
         persist-credentials: false
     - uses: extractions/setup-just@v4
     - name: Install stable Rust
-      run: rustup toolchain install stable --profile minimal
+      run: rustup toolchain install stable --profile minimal --component rustfmt,clippy
     - name: Check only
       run: just check-rs
     - name: Check all targets

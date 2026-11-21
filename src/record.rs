@@ -96,7 +96,7 @@ impl Record {
         })?;
         let trailer = position
             .checked_add(header_len)
-            .and_then(|n| n.checked_add(u64::from(header.payload_len)))
+            .and_then(|n| n.checked_add(header.payload_len))
             .ok_or_else(|| {
                 std::io::Error::new(std::io::ErrorKind::InvalidData, "position overflow")
             })?;
@@ -110,13 +110,13 @@ impl Record {
         let following = if next_offset == 0 {
             None
         } else {
-            if u64::from(next_offset) < offset_len {
+            if next_offset < offset_len {
                 return Err(std::io::Error::new(
                     std::io::ErrorKind::InvalidData,
                     "overlapping records",
                 ));
             }
-            Some(trailer.checked_add(u64::from(next_offset)).ok_or_else(|| {
+            Some(trailer.checked_add(next_offset).ok_or_else(|| {
                 std::io::Error::new(std::io::ErrorKind::InvalidData, "position overflow")
             })?)
         };
@@ -178,17 +178,15 @@ fn read_stream_header(r: &mut (impl Read + Seek)) -> std::io::Result<Option<u64>
     if offset == 0 {
         Ok(None)
     } else {
-        if u64::from(offset) < header_len {
+        if offset < header_len {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
                 "first record overlaps storage header",
             ));
         }
-        base.checked_add(u64::from(offset))
-            .map(Some)
-            .ok_or_else(|| {
-                std::io::Error::new(std::io::ErrorKind::InvalidData, "position overflow")
-            })
+        base.checked_add(offset).map(Some).ok_or_else(|| {
+            std::io::Error::new(std::io::ErrorKind::InvalidData, "position overflow")
+        })
     }
 }
 
