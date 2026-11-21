@@ -17,6 +17,7 @@ smallvec = { version = "1.16.5", features = ["write"] }
 colored = "3.1.1"
 criterion = "0.8.2"
 fastrand = "2"
+zstd = "0.13"
 
 [[bench]]
 name = "storage_writes"
