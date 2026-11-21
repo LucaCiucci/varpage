@@ -18,8 +18,7 @@ fn main() {
     println!("  Before vacuuming:");
     dump_colored(s.get_ref().get_ref());
     println!();
-    s.vacuum().unwrap();
-    let end = s.end_position().unwrap();
+    let end = s.vacuum().unwrap();
     let payload_size = s.compute_total_payload_size();
     println!(
         "Total payload size: {:?} bytes, total storage size: {:?} bytes, ratio: {:?}",
@@ -27,8 +26,10 @@ fn main() {
         end,
         payload_size as f64 / end as f64
     );
-    drop(s);
-    buf.truncate(usize::try_from(end).unwrap());
+    // Vacuum packs the records and returns the new length for the backing buffer.
+    s.into_inner()
+        .into_inner()
+        .truncate(usize::try_from(end).unwrap());
 
     println!("  After vacuuming:");
     dump_colored(&buf);
@@ -42,7 +43,10 @@ fn main() {
         .unwrap();
     println!("  Before vacuuming:");
     dump_colored(s.get_ref().get_ref());
-    s.vacuum().unwrap();
+    let end = s.vacuum().unwrap();
+    s.into_inner()
+        .into_inner()
+        .truncate(usize::try_from(end).unwrap());
     println!("  After vacuuming:");
-    dump_colored(s.get_ref().get_ref());
+    dump_colored(&buf);
 }
